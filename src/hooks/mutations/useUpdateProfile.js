@@ -35,3 +35,18 @@ export function useUpdateDoctorProfile() {
     },
   });
 }
+
+export function useUploadProfilePicture() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (file) => doctorApi.uploadProfilePicture(file),
+    onSuccess: () => {
+      toast.success("Profile picture updated!");
+      queryClient.invalidateQueries({ queryKey: doctorKeys.profile() });
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error));
+    },
+  });
+}

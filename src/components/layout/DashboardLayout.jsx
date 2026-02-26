@@ -45,13 +45,18 @@ export default function DashboardLayout() {
         </div>
         <Sidebar onItemClick={() => setSidebarOpen(false)} />
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t">
-          <div className="text-sm text-muted-foreground mb-2">{user?.name}</div>
+          <div className="text-sm text-muted-foreground mb-3">{user?.name}</div>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-2 text-sm text-destructive hover:underline w-full"
+            className="group relative flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl text-sm font-medium
+              text-red-600 bg-red-50 border border-red-100
+              hover:bg-red-500 hover:text-white hover:border-red-500 hover:shadow-lg hover:shadow-red-500/25
+              active:scale-[0.97]
+              transition-all duration-300 ease-out cursor-pointer overflow-hidden"
           >
-            <LogOut className="h-4 w-4" />
-            Logout
+            <span className="absolute inset-0 bg-gradient-to-r from-red-500 to-rose-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <LogOut className="relative z-10 h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
+            <span className="relative z-10">Logout</span>
           </button>
         </div>
       </aside>

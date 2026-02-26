@@ -1,19 +1,25 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useDoctorProfile } from "@/hooks/queries/useDoctors";
 import { useSpecialties } from "@/hooks/queries/useSpecialties";
-import { useUpdateDoctorProfile } from "@/hooks/mutations/useUpdateProfile";
+import {
+  useUpdateDoctorProfile,
+  useUploadProfilePicture,
+} from "@/hooks/mutations/useUpdateProfile";
 import { useForm } from "react-hook-form";
 import PageTitle from "@/components/shared/PageTitle";
 import LoadingSpinner from "@/components/shared/LoadingSpinner";
 import FormField from "@/components/forms/FormField";
 import AvailabilityEditor from "@/components/forms/AvailabilityEditor";
-import { Loader2 } from "lucide-react";
-import { formatDate } from "@/lib/utils";
+import { Loader2, Camera, User } from "lucide-react";
+import { formatDate, getProfilePicUrl } from "@/lib/utils";
+import { BACKEND_URL } from "@/lib/constants";
 
 export default function DoctorProfile() {
   const { data: profile, isLoading } = useDoctorProfile();
   const { data: specialties } = useSpecialties();
   const updateMutation = useUpdateDoctorProfile();
+  const uploadMutation = useUploadProfilePicture();
+  const fileInputRef = useRef(null);
 
   const [availability, setAvailability] = useState([]);
 
@@ -33,6 +39,26 @@ export default function DoctorProfile() {
 
   const user = profile?.user;
 
+  const handlePictureChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Client-side validation
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+    if (!allowedTypes.includes(file.type)) {
+      return alert("Only JPEG, PNG, and WebP images are allowed.");
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      return alert("File too large. Maximum size is 2 MB.");
+    }
+
+    uploadMutation.mutate(file);
+    // Reset input so same file can be re-selected
+    e.target.value = "";
+  };
+
+  const profilePicUrl = getProfilePicUrl(profile?.profilePicture);
+
   const onSubmit = (data) => {
     updateMutation.mutate({
       ...data,
@@ -50,32 +76,73 @@ export default function DoctorProfile() {
       {/* Personal info (read-only) */}
       <div className="border rounded-lg p-6 bg-card mb-6">
         <h3 className="font-semibold mb-4">Personal Information</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <div>
-            <span className="text-muted-foreground">Name:</span>{" "}
-            <span className="font-medium">{user?.name}</span>
-          </div>
-          <div>
-            <span className="text-muted-foreground">Email:</span>{" "}
-            <span className="font-medium">{user?.email}</span>
-          </div>
-          <div>
-            <span className="text-muted-foreground">Phone:</span>{" "}
-            <span className="font-medium">{user?.phone}</span>
-          </div>
-          <div>
-            <span className="text-muted-foreground">Gender:</span>{" "}
-            <span className="font-medium capitalize">{user?.gender}</span>
-          </div>
-          <div>
-            <span className="text-muted-foreground">Approval:</span>{" "}
-            <span
-              className={`font-medium ${
-                profile?.isApproved ? "text-green-600" : "text-yellow-600"
-              }`}
+
+        <div className="flex flex-col sm:flex-row gap-6 items-start">
+          {/* Profile picture */}
+          <div className="relative group shrink-0">
+            <div className="w-24 h-24 rounded-2xl overflow-hidden bg-muted border-2 border-border shadow-sm">
+              {profilePicUrl ? (
+                <img
+                  src={profilePicUrl}
+                  alt={user?.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-primary/10">
+                  <User className="h-10 w-10 text-primary/40" />
+                </div>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadMutation.isPending}
+              className="absolute -bottom-2 -right-2 w-9 h-9 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shadow-md hover:bg-primary/90 transition-all border-2 border-background disabled:opacity-50"
+              title="Change profile picture"
             >
-              {profile?.isApproved ? "Approved" : "Pending Approval"}
-            </span>
+              {uploadMutation.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Camera className="h-4 w-4" />
+              )}
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={handlePictureChange}
+              className="hidden"
+            />
+          </div>
+
+          {/* Info grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm flex-1">
+            <div>
+              <span className="text-muted-foreground">Name:</span>{" "}
+              <span className="font-medium">{user?.name}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Email:</span>{" "}
+              <span className="font-medium">{user?.email}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Phone:</span>{" "}
+              <span className="font-medium">{user?.phone}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Gender:</span>{" "}
+              <span className="font-medium capitalize">{user?.gender}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Approval:</span>{" "}
+              <span
+                className={`font-medium ${
+                  profile?.isApproved ? "text-green-600" : "text-yellow-600"
+                }`}
+              >
+                {profile?.isApproved ? "Approved" : "Pending Approval"}
+              </span>
+            </div>
           </div>
         </div>
       </div>

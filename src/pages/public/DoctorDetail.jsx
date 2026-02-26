@@ -7,8 +7,8 @@ import PageTitle from "@/components/shared/PageTitle";
 import LoadingSpinner from "@/components/shared/LoadingSpinner";
 import Footer from "@/components/shared/Footer";
 import PublicNavbar from "@/components/shared/PublicNavbar";
-import { formatTime } from "@/lib/utils";
-import { ArrowLeft, Calendar, Clock, Mail, Phone } from "lucide-react";
+import { formatTime, getProfilePicUrl } from "@/lib/utils";
+import { ArrowLeft, Calendar, Clock, Mail, Phone, User } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { ROLES } from "@/lib/constants";
 
@@ -22,7 +22,7 @@ export default function DoctorDetail() {
     <div className="min-h-screen">
       <PublicNavbar />
 
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="max-w-4xl mx-auto px-4 pt-24 pb-8">
         <Link
           to="/doctors"
           className="flex items-center gap-1 text-sm text-primary hover:underline mb-6"
@@ -41,11 +41,29 @@ export default function DoctorDetail() {
           <div>
             {/* Doctor Info */}
             <div className="border rounded-lg p-6 bg-card mb-6">
-              <h1 className="text-2xl font-bold">{doctor.user?.name}</h1>
-              <p className="text-primary font-medium mt-1">
-                {doctor.specialty?.name || "General"}
-              </p>
-              <p className="text-muted-foreground mt-3">
+              <div className="flex items-start gap-5 mb-4">
+                {/* Profile picture */}
+                <div className="w-20 h-20 rounded-2xl overflow-hidden shadow-md shrink-0 border border-gray-100">
+                  {doctor.profilePicture ? (
+                    <img
+                      src={getProfilePicUrl(doctor.profilePicture)}
+                      alt={doctor.user?.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
+                      <User className="h-9 w-9 text-white/70" />
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold">{doctor.user?.name}</h1>
+                  <p className="text-primary font-medium mt-1">
+                    {doctor.specialty?.name || "General"}
+                  </p>
+                </div>
+              </div>
+              <p className="text-muted-foreground">
                 {doctor.bio || "No bio available"}
               </p>
 

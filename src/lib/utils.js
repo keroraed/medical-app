@@ -1,9 +1,15 @@
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { format, parseISO } from "date-fns";
+import { BACKEND_URL } from "./constants";
 
 export function cn(...inputs) {
   return twMerge(clsx(inputs));
+}
+export function getProfilePicUrl(pic) {
+  if (!pic) return null;
+  if (pic.startsWith("http://") || pic.startsWith("https://")) return pic;
+  return `${BACKEND_URL}${pic}`;
 }
 
 export function formatDate(dateString) {
