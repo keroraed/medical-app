@@ -21,11 +21,11 @@ api.interceptors.request.use(
   (error) => Promise.reject(error),
 );
 
-// Response interceptor — handle 401 + normalize errors
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const isAuthEndpoint = error.config?.url?.includes("/auth/");
+    if (error.response?.status === 401 && !isAuthEndpoint) {
       useAuthStore.getState().logout();
       window.location.href = "/login";
     }

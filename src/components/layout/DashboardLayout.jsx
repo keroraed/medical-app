@@ -1,7 +1,7 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, Link } from "react-router-dom";
 import { useState } from "react";
 import Sidebar from "./Sidebar";
-import { Menu, X, Heart, LogOut } from "lucide-react";
+import { Menu, X, Heart, LogOut, Home } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 
@@ -32,8 +32,10 @@ export default function DashboardLayout() {
         }`}
       >
         <div className="flex items-center gap-2 p-4 border-b">
-          <Heart className="h-6 w-6 text-primary" />
-          <span className="text-lg font-bold">MedAppoint</span>
+          <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <Heart className="h-6 w-6 text-primary" />
+            <span className="text-lg font-bold">MedAppoint</span>
+          </Link>
           <button
             onClick={() => setSidebarOpen(false)}
             className="ml-auto lg:hidden"
@@ -64,6 +66,13 @@ export default function DashboardLayout() {
           <h2 className="font-semibold text-lg">
             {user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1)} Portal
           </h2>
+          <Link
+            to="/"
+            className="ml-auto flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <Home className="h-4 w-4" />
+            Home
+          </Link>
         </header>
 
         {/* Content */}

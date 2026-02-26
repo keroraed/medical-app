@@ -6,39 +6,21 @@ import {
 import PageTitle from "@/components/shared/PageTitle";
 import LoadingSpinner from "@/components/shared/LoadingSpinner";
 import Footer from "@/components/shared/Footer";
+import PublicNavbar from "@/components/shared/PublicNavbar";
 import { formatTime } from "@/lib/utils";
-import { Heart, ArrowLeft, Calendar, Clock, Mail, Phone } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, Mail, Phone } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { ROLES } from "@/lib/constants";
 
 export default function DoctorDetail() {
   const { id } = useParams();
   const { data: doctor, isLoading } = useDoctorDetail(id);
   const { data: availability } = useDoctorAvailability(id);
+  const { isAuthenticated, role } = useAuth();
 
   return (
     <div className="min-h-screen">
-      {/* Navbar */}
-      <header className="border-b">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <Heart className="h-7 w-7 text-primary" />
-            <span className="text-xl font-bold">MedAppoint</span>
-          </Link>
-          <nav className="flex items-center gap-4">
-            <Link
-              to="/login"
-              className="text-sm text-muted-foreground hover:text-foreground"
-            >
-              Sign In
-            </Link>
-            <Link
-              to="/register"
-              className="text-sm bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90"
-            >
-              Register
-            </Link>
-          </nav>
-        </div>
-      </header>
+      <PublicNavbar />
 
       <div className="max-w-4xl mx-auto px-4 py-8">
         <Link
@@ -124,13 +106,23 @@ export default function DoctorDetail() {
 
             {/* CTA */}
             <div className="text-center">
-              <Link
-                to="/login"
-                className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-md hover:bg-primary/90"
-              >
-                <Calendar className="h-4 w-4" />
-                Sign in to Book Appointment
-              </Link>
+              {isAuthenticated && role === ROLES.PATIENT ? (
+                <Link
+                  to="/patient/book"
+                  className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-md hover:bg-primary/90"
+                >
+                  <Calendar className="h-4 w-4" />
+                  Book Appointment
+                </Link>
+              ) : !isAuthenticated ? (
+                <Link
+                  to="/login"
+                  className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-md hover:bg-primary/90"
+                >
+                  <Calendar className="h-4 w-4" />
+                  Sign in to Book Appointment
+                </Link>
+              ) : null}
             </div>
           </div>
         )}

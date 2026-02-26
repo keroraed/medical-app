@@ -7,7 +7,8 @@ import LoadingSpinner from "@/components/shared/LoadingSpinner";
 import EmptyState from "@/components/shared/EmptyState";
 import Pagination from "@/components/shared/Pagination";
 import Footer from "@/components/shared/Footer";
-import { Heart, ArrowRight } from "lucide-react";
+import PublicNavbar from "@/components/shared/PublicNavbar";
+import { ArrowRight } from "lucide-react";
 
 export default function DoctorsList() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -45,29 +46,7 @@ export default function DoctorsList() {
 
   return (
     <div className="min-h-screen">
-      {/* Navbar */}
-      <header className="border-b">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <Heart className="h-7 w-7 text-primary" />
-            <span className="text-xl font-bold">MedAppoint</span>
-          </Link>
-          <nav className="flex items-center gap-4">
-            <Link
-              to="/login"
-              className="text-sm text-muted-foreground hover:text-foreground"
-            >
-              Sign In
-            </Link>
-            <Link
-              to="/register"
-              className="text-sm bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90"
-            >
-              Register
-            </Link>
-          </nav>
-        </div>
-      </header>
+      <PublicNavbar />
 
       <div className="max-w-6xl mx-auto px-4 py-8">
         <PageTitle
