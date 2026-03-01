@@ -1,33 +1,12 @@
-import { useQuery } from "@tanstack/react-query";
-import { adminApi } from "@/api/admin.api";
+import { useAdminUserStats, useAdminAppointmentStats, useAdminSpecialtyStats } from "@/hooks/queries/useAdmin";
 import PageTitle from "@/components/shared/PageTitle";
 import LoadingSpinner from "@/components/shared/LoadingSpinner";
-import { Users, Calendar, Stethoscope, ShieldCheck } from "lucide-react";
+import { Users, Calendar, Stethoscope } from "lucide-react";
 
 export default function AdminDashboard() {
-  const { data: usersData, isLoading: usersLoading } = useQuery({
-    queryKey: ["admin", "users", "stats"],
-    queryFn: async () => {
-      const { data } = await adminApi.getUsers({ page: 1, limit: 1 });
-      return data;
-    },
-  });
-
-  const { data: appointmentsData, isLoading: apptLoading } = useQuery({
-    queryKey: ["admin", "appointments", "stats"],
-    queryFn: async () => {
-      const { data } = await adminApi.getAppointments({ page: 1, limit: 1 });
-      return data;
-    },
-  });
-
-  const { data: specialtiesData, isLoading: specLoading } = useQuery({
-    queryKey: ["admin", "specialties", "stats"],
-    queryFn: async () => {
-      const { data } = await adminApi.getSpecialties();
-      return data;
-    },
-  });
+  const { data: usersData, isLoading: usersLoading } = useAdminUserStats();
+  const { data: appointmentsData, isLoading: apptLoading } = useAdminAppointmentStats();
+  const { data: specialtiesData, isLoading: specLoading } = useAdminSpecialtyStats();
 
   if (usersLoading || apptLoading || specLoading) return <LoadingSpinner />;
 

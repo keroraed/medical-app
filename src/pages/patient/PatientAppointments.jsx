@@ -7,6 +7,7 @@ import LoadingSpinner from "@/components/shared/LoadingSpinner";
 import EmptyState from "@/components/shared/EmptyState";
 import Pagination from "@/components/shared/Pagination";
 import StatusBadge from "@/components/shared/StatusBadge";
+import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import { formatDate, formatTime } from "@/lib/utils";
 import { STATUS } from "@/lib/constants";
 import { XCircle } from "lucide-react";
@@ -22,12 +23,17 @@ export default function PatientAppointments() {
     ...(status && { status }),
   });
 
+  const [cancelTargetId, setCancelTargetId] = useState(null);
+
   const cancelMutation = useUpdatePatientAppointment();
 
-  const handleCancel = (id) => {
-    if (window.confirm("Are you sure you want to cancel this appointment?")) {
-      cancelMutation.mutate({ id, data: { status: "cancelled" } });
-    }
+  const handleCancel = (id) => setCancelTargetId(id);
+
+  const handleConfirmCancel = () => {
+    cancelMutation.mutate(
+      { id: cancelTargetId, data: { status: "cancelled" } },
+      { onSettled: () => setCancelTargetId(null) },
+    );
   };
 
   const handlePageChange = (newPage) => {
@@ -130,6 +136,15 @@ export default function PatientAppointments() {
       )}
 
       <Pagination pagination={pagination} onPageChange={handlePageChange} />
+
+      <ConfirmDialog
+        isOpen={!!cancelTargetId}
+        title="Cancel appointment?"
+        description="This appointment will be cancelled and cannot be undone."
+        onConfirm={handleConfirmCancel}
+        onCancel={() => setCancelTargetId(null)}
+        confirmLabel="Yes, cancel"
+      />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { format, parseISO } from "date-fns";
-import { BACKEND_URL } from "./constants";
+import { BACKEND_URL, ROLES } from "./constants";
 
 export function cn(...inputs) {
   return twMerge(clsx(inputs));
@@ -40,13 +40,47 @@ export function getErrorMessage(error) {
 
 export function getDashboardPath(role) {
   switch (role) {
-    case "admin":
+    case ROLES.ADMIN:
       return "/admin";
-    case "doctor":
+    case ROLES.DOCTOR:
       return "/doctor";
-    case "patient":
+    case ROLES.PATIENT:
       return "/patient";
     default:
       return "/";
   }
+}
+
+/**
+ * Robustly extract an ID string from various shapes:
+ *   string, { _id }, { id }, ObjectId, etc.
+ */
+export function extractId(value) {
+  if (!value) return null;
+  if (typeof value === "string") return value;
+  return value._id ?? value.id ?? (value.toString !== Object.prototype.toString ? value.toString() : null);
+}
+
+/**
+ * Extract a display name from a user-like or participant-like object.
+ * Tries: obj.name → obj.userId.name → obj.user.name → firstName+lastName
+ */
+export function extractName(obj) {
+  if (!obj) return "Unknown";
+  if (typeof obj === "string") return obj;
+
+  // Direct name
+  if (obj.name) return obj.name;
+
+  // Nested via .userId (populated participant)
+  const via = obj.userId ?? obj.user;
+  if (via?.name) return via.name;
+
+  // firstName / lastName
+  const first = obj.firstName ?? via?.firstName ?? "";
+  const last = obj.lastName ?? via?.lastName ?? "";
+  const full = `${first} ${last}`.trim();
+  if (full) return full;
+
+  return "Unknown";
 }

@@ -1,12 +1,8 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Link, useNavigate } from "react-router-dom";
-import { useMutation } from "@tanstack/react-query";
-import { authApi } from "@/api/auth.api";
-import { useAuth } from "@/hooks/useAuth";
-import { getErrorMessage } from "@/lib/utils";
-import { toast } from "sonner";
+import { Link } from "react-router-dom";
+import { useLogin } from "@/hooks/mutations/useLogin";
 import FormField from "@/components/forms/FormField";
 import { Loader2 } from "lucide-react";
 
@@ -16,8 +12,7 @@ const loginSchema = z.object({
 });
 
 export default function Login() {
-  const navigate = useNavigate();
-  const { setAuth, dashboardPath } = useAuth();
+  const loginMutation = useLogin();
 
   const {
     register,
@@ -27,27 +22,15 @@ export default function Login() {
     resolver: zodResolver(loginSchema),
   });
 
-  const loginMutation = useMutation({
-    mutationFn: (data) => authApi.login(data),
-    onSuccess: (response) => {
-      const { user, token } = response.data;
-      setAuth({ user, token });
-      toast.success("Login successful!");
-      navigate(dashboardPath || `/${user.role}`);
-    },
-    onError: (error) => {
-      toast.error(getErrorMessage(error));
-    },
-  });
-
   const onSubmit = (data) => loginMutation.mutate(data);
 
   return (
     <div>
       <h2 className="text-2xl font-bold text-center mb-6">Welcome Back</h2>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <FormField label="Email" error={errors.email} required>
+        <FormField label="Email" htmlFor="login-email" error={errors.email} required>
           <input
+            id="login-email"
             type="email"
             {...register("email")}
             placeholder="you@example.com"
@@ -55,8 +38,9 @@ export default function Login() {
           />
         </FormField>
 
-        <FormField label="Password" error={errors.password} required>
+        <FormField label="Password" htmlFor="login-password" error={errors.password} required>
           <input
+            id="login-password"
             type="password"
             {...register("password")}
             placeholder="••••••••"

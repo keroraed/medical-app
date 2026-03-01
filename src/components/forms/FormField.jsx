@@ -6,11 +6,15 @@ export default function FormField({
   children,
   className,
   required,
+  htmlFor,
 }) {
   return (
     <div className={cn("space-y-1", className)}>
       {label && (
-        <label className="text-sm font-medium leading-none">
+        <label
+          htmlFor={htmlFor}
+          className="text-sm font-medium leading-none"
+        >
           {label}
           {required && <span className="text-destructive ml-1">*</span>}
         </label>

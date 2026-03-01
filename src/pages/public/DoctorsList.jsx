@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useDoctors } from "@/hooks/queries/useDoctors";
 import { useSpecialties } from "@/hooks/queries/useSpecialties";
 import LoadingSpinner from "@/components/shared/LoadingSpinner";
@@ -15,10 +15,14 @@ import {
   Stethoscope,
   Calendar,
   Filter,
+  MessageSquare,
   User,
 } from "lucide-react";
 import { BACKEND_URL } from "@/lib/constants";
 import { getProfilePicUrl } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
+import { ROLES } from "@/lib/constants";
+import { useStartConversation } from "@/hooks/mutations/useChatMutations";
 
 function SpecialtyDropdown({ specialties, value, onChange }) {
   const [open, setOpen] = useState(false);
@@ -149,6 +153,22 @@ function SpecialtyDropdown({ specialties, value, onChange }) {
 }
 
 export default function DoctorsList() {
+  const navigate = useNavigate();
+  const { role } = useAuth();
+  const startConversation = useStartConversation();
+  const isPatient = role === ROLES.PATIENT;
+
+  const handleMessageDoctor = (e, doctorId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    startConversation.mutate(doctorId, {
+      onSuccess: ({ data }) => {
+        const convId = data?.data?._id;
+        navigate(convId ? `/patient/chat?conversation=${convId}` : "/patient/chat");
+      },
+    });
+  };
+
   const [searchParams, setSearchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1");
   const specialty = searchParams.get("specialty") || "";
@@ -330,51 +350,64 @@ export default function DoctorsList() {
                   .toUpperCase() || "DR";
 
               return (
-                <Link
+                <div
                   key={doc._id}
-                  to={`/doctors/${doc._id}`}
-                  className="group bg-white rounded-2xl border border-gray-100 p-6 shadow-sm hover:shadow-xl hover:shadow-gray-200/50 hover:-translate-y-1 transition-all duration-300"
+                  className="group relative bg-white rounded-2xl border border-gray-100 p-6 shadow-sm hover:shadow-xl hover:shadow-gray-200/50 hover:-translate-y-1 transition-all duration-300"
                 >
-                  <div className="flex items-start gap-4 mb-3">
-                    {/* Avatar / Profile picture */}
-                    <div className="w-12 h-12 rounded-xl overflow-hidden shadow-md shrink-0">
-                      {picUrl ? (
-                        <img
-                          src={picUrl}
-                          alt={doc.user?.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-sm">
-                          {initials}
-                        </div>
-                      )}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <h3 className="font-semibold text-gray-900 text-lg group-hover:text-blue-600 transition-colors truncate">
-                        {doc.user?.name}
-                      </h3>
-                      <p className="text-sm text-blue-600 font-medium">
-                        {doc.specialty?.name || "General"}
-                      </p>
-                    </div>
-                  </div>
+                  {/* Chat icon — top-right corner, only for logged-in patients */}
+                  {isPatient && (
+                    <button
+                      onClick={(e) => handleMessageDoctor(e, doc._id)}
+                      disabled={startConversation.isPending}
+                      title="Message this doctor"
+                      className="absolute top-4 right-4 h-8 w-8 flex items-center justify-center rounded-full border border-blue-200 text-blue-500 bg-white hover:bg-blue-50 hover:border-blue-400 hover:text-blue-600 transition-colors z-10 shadow-sm disabled:opacity-50"
+                    >
+                      <MessageSquare className="h-4 w-4" />
+                    </button>
+                  )}
 
-                <p className="text-sm text-gray-500 leading-relaxed line-clamp-2 mb-4">
-                  {doc.bio || "No bio available"}
-                </p>
+                  <Link to={`/doctors/${doc._id}`} className="block">
+                    <div className="flex items-start gap-4 mb-3">
+                      {/* Avatar / Profile picture */}
+                      <div className="w-12 h-12 rounded-xl overflow-hidden shadow-md shrink-0">
+                        {picUrl ? (
+                          <img
+                            src={picUrl}
+                            alt={doc.user?.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-sm">
+                            {initials}
+                          </div>
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1 pr-8">
+                        <h3 className="font-semibold text-gray-900 text-lg group-hover:text-blue-600 transition-colors truncate">
+                          {doc.user?.name}
+                        </h3>
+                        <p className="text-sm text-blue-600 font-medium">
+                          {doc.specialty?.name || "General"}
+                        </p>
+                      </div>
+                    </div>
 
-                <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                  <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                    <Calendar className="h-3.5 w-3.5" />
-                    {doc.availability?.length || 0} days available
-                  </div>
-                  <span className="text-xs font-medium text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
-                    View Profile
-                    <ArrowRight className="h-3 w-3" />
-                  </span>
+                    <p className="text-sm text-gray-500 leading-relaxed line-clamp-2 mb-4">
+                      {doc.bio || "No bio available"}
+                    </p>
+
+                    <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                      <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                        <Calendar className="h-3.5 w-3.5" />
+                        {doc.availability?.length || 0} days available
+                      </div>
+                      <span className="text-xs font-medium text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                        View Profile
+                        <ArrowRight className="h-3 w-3" />
+                      </span>
+                    </div>
+                  </Link>
                 </div>
-              </Link>
               );
             })}
           </div>

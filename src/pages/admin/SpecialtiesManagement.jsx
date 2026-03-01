@@ -1,50 +1,27 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { adminApi } from "@/api/admin.api";
 import { useAdminSpecialties } from "@/hooks/queries/useSpecialties";
+import {
+  useCreateSpecialty,
+  useUpdateSpecialty,
+  useDeleteSpecialty,
+} from "@/hooks/mutations/useAdminMutations";
 import PageTitle from "@/components/shared/PageTitle";
 import LoadingSpinner from "@/components/shared/LoadingSpinner";
 import EmptyState from "@/components/shared/EmptyState";
-import { toast } from "sonner";
-import { getErrorMessage } from "@/lib/utils";
+import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import { Plus, Pencil, Trash2, Loader2, X } from "lucide-react";
 
 export default function SpecialtiesManagement() {
-  const queryClient = useQueryClient();
   const { data: specialties, isLoading } = useAdminSpecialties();
 
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [name, setName] = useState("");
+  const [deleteTargetId, setDeleteTargetId] = useState(null);
 
-  const createMutation = useMutation({
-    mutationFn: (data) => adminApi.createSpecialty(data),
-    onSuccess: () => {
-      toast.success("Specialty created!");
-      queryClient.invalidateQueries({ queryKey: ["specialties"] });
-      resetForm();
-    },
-    onError: (error) => toast.error(getErrorMessage(error)),
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => adminApi.updateSpecialty(id, data),
-    onSuccess: () => {
-      toast.success("Specialty updated!");
-      queryClient.invalidateQueries({ queryKey: ["specialties"] });
-      resetForm();
-    },
-    onError: (error) => toast.error(getErrorMessage(error)),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id) => adminApi.deleteSpecialty(id),
-    onSuccess: () => {
-      toast.success("Specialty deleted!");
-      queryClient.invalidateQueries({ queryKey: ["specialties"] });
-    },
-    onError: (error) => toast.error(getErrorMessage(error)),
-  });
+  const createMutation = useCreateSpecialty();
+  const updateMutation = useUpdateSpecialty();
+  const deleteMutation = useDeleteSpecialty();
 
   const resetForm = () => {
     setShowForm(false);
@@ -57,9 +34,12 @@ export default function SpecialtiesManagement() {
     if (!name.trim()) return;
 
     if (editingId) {
-      updateMutation.mutate({ id: editingId, data: { name: name.trim() } });
+      updateMutation.mutate(
+        { id: editingId, data: { name: name.trim() } },
+        { onSuccess: resetForm },
+      );
     } else {
-      createMutation.mutate({ name: name.trim() });
+      createMutation.mutate({ name: name.trim() }, { onSuccess: resetForm });
     }
   };
 
@@ -69,10 +49,12 @@ export default function SpecialtiesManagement() {
     setShowForm(true);
   };
 
-  const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this specialty?")) {
-      deleteMutation.mutate(id);
-    }
+  const handleDelete = (id) => setDeleteTargetId(id);
+
+  const handleConfirmDelete = () => {
+    deleteMutation.mutate(deleteTargetId, {
+      onSettled: () => setDeleteTargetId(null),
+    });
   };
 
   if (isLoading) return <LoadingSpinner />;
@@ -165,6 +147,14 @@ export default function SpecialtiesManagement() {
           ))}
         </div>
       )}
+      <ConfirmDialog
+        isOpen={!!deleteTargetId}
+        title="Delete specialty?"
+        description="This specialty will be permanently deleted and cannot be recovered."
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setDeleteTargetId(null)}
+        confirmLabel="Delete"
+      />
     </div>
   );
 }

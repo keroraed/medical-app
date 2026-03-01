@@ -22,6 +22,7 @@ export default function DashboardLayout() {
         <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
+          aria-hidden="true"
         />
       )}
 
@@ -30,6 +31,7 @@ export default function DashboardLayout() {
         className={`fixed inset-y-0 left-0 z-50 w-64 bg-card border-r transform transition-transform duration-200 lg:translate-x-0 lg:static lg:z-auto ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
+        aria-label="Sidebar"
       >
         <div className="flex items-center gap-2 p-4 border-b">
           <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
@@ -39,6 +41,7 @@ export default function DashboardLayout() {
           <button
             onClick={() => setSidebarOpen(false)}
             className="ml-auto lg:hidden"
+            aria-label="Close sidebar"
           >
             <X className="h-5 w-5" />
           </button>
@@ -65,7 +68,12 @@ export default function DashboardLayout() {
       <div className="flex-1 flex flex-col min-h-screen">
         {/* Topbar */}
         <header className="sticky top-0 z-30 bg-card border-b px-4 py-3 flex items-center gap-4 lg:px-6">
-          <button onClick={() => setSidebarOpen(true)} className="lg:hidden">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="lg:hidden"
+            aria-label="Open sidebar"
+            aria-expanded={sidebarOpen}
+          >
             <Menu className="h-5 w-5" />
           </button>
           <h2 className="font-semibold text-lg">

@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useDoctorAppointments } from "@/hooks/queries/useAppointments";
 import { useUpdateDoctorAppointment } from "@/hooks/mutations/useUpdateAppointment";
+import { useStartConversation } from "@/hooks/mutations/useChatMutations";
 import PageTitle from "@/components/shared/PageTitle";
 import LoadingSpinner from "@/components/shared/LoadingSpinner";
 import EmptyState from "@/components/shared/EmptyState";
@@ -9,9 +10,10 @@ import Pagination from "@/components/shared/Pagination";
 import StatusBadge from "@/components/shared/StatusBadge";
 import { formatDate, formatTime } from "@/lib/utils";
 import { STATUS } from "@/lib/constants";
-import { Check, X, CheckCircle, StickyNote } from "lucide-react";
+import { Check, X, CheckCircle, MessageSquare, StickyNote } from "lucide-react";
 
 export default function DoctorAppointments() {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1");
   const status = searchParams.get("status") || "";
@@ -25,6 +27,19 @@ export default function DoctorAppointments() {
   });
 
   const updateMutation = useUpdateDoctorAppointment();
+  const startConversation = useStartConversation();
+
+  const handleMessagePatient = (patientId) => {
+    // appt.patient._id is the Patient profile _id the backend expects
+    startConversation.mutate(patientId, {
+      onSuccess: ({ data }) => {
+        const convId = data?.data?._id;
+        navigate(
+          convId ? `/doctor/chat?conversation=${convId}` : "/doctor/chat",
+        );
+      },
+    });
+  };
 
   const handleStatusUpdate = (id, newStatus) => {
     updateMutation.mutate({ id, data: { status: newStatus } });
@@ -192,6 +207,14 @@ export default function DoctorAppointments() {
                   >
                     <StickyNote className="h-3 w-3" />
                     Notes
+                  </button>
+                  <button
+                    onClick={() => handleMessagePatient(appt.patient._id)}
+                    disabled={startConversation.isPending}
+                    className="flex items-center gap-1 px-3 py-1.5 text-sm border border-primary text-primary rounded-md hover:bg-primary/10 disabled:opacity-50"
+                  >
+                    <MessageSquare className="h-3 w-3" />
+                    Message
                   </button>
                 </div>
               </div>

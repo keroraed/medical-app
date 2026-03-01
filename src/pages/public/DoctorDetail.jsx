@@ -1,4 +1,4 @@
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   useDoctorDetail,
   useDoctorAvailability,
@@ -8,15 +8,30 @@ import LoadingSpinner from "@/components/shared/LoadingSpinner";
 import Footer from "@/components/shared/Footer";
 import PublicNavbar from "@/components/shared/PublicNavbar";
 import { formatTime, getProfilePicUrl } from "@/lib/utils";
-import { ArrowLeft, Calendar, Clock, Mail, Phone, User } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, Mail, MessageSquare, Phone, User } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { ROLES } from "@/lib/constants";
+import { useStartConversation } from "@/hooks/mutations/useChatMutations";
 
 export default function DoctorDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { data: doctor, isLoading } = useDoctorDetail(id);
   const { data: availability } = useDoctorAvailability(id);
   const { isAuthenticated, role } = useAuth();
+  const startConversation = useStartConversation();
+
+  const handleMessage = () => {
+    // doctor._id is the DoctorProfile _id — exactly what the API expects
+    startConversation.mutate(doctor._id, {
+      onSuccess: ({ data }) => {
+        const convId = data?.data?._id;
+        navigate(
+          convId ? `/patient/chat?conversation=${convId}` : "/patient/chat",
+        );
+      },
+    });
+  };
 
   return (
     <div className="min-h-screen">
@@ -56,8 +71,20 @@ export default function DoctorDetail() {
                     </div>
                   )}
                 </div>
-                <div>
-                  <h1 className="text-2xl font-bold">{doctor.user?.name}</h1>
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <h1 className="text-2xl font-bold">{doctor.user?.name}</h1>
+                    {isAuthenticated && role === ROLES.PATIENT && doctor.isApproved && (
+                      <button
+                        onClick={handleMessage}
+                        disabled={startConversation.isPending}
+                        title="Message this doctor"
+                        className="h-8 w-8 flex items-center justify-center rounded-full border border-primary text-primary hover:bg-primary/10 disabled:opacity-50 transition-colors"
+                      >
+                        <MessageSquare className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
                   <p className="text-primary font-medium mt-1">
                     {doctor.specialty?.name || "General"}
                   </p>
@@ -123,15 +150,27 @@ export default function DoctorDetail() {
             </div>
 
             {/* CTA */}
-            <div className="text-center">
+            <div className="flex flex-wrap justify-center gap-3">
               {isAuthenticated && role === ROLES.PATIENT ? (
-                <Link
-                  to="/patient/book"
-                  className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-md hover:bg-primary/90"
-                >
-                  <Calendar className="h-4 w-4" />
-                  Book Appointment
-                </Link>
+                <>
+                  <Link
+                    to={`/patient/book?doctor=${id}`}
+                    className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-md hover:bg-primary/90"
+                  >
+                    <Calendar className="h-4 w-4" />
+                    Book Appointment
+                  </Link>
+                  {doctor.isApproved && (
+                    <button
+                      onClick={handleMessage}
+                      disabled={startConversation.isPending}
+                      className="inline-flex items-center gap-2 border border-primary text-primary px-6 py-3 rounded-md hover:bg-primary/10 disabled:opacity-50"
+                    >
+                      <MessageSquare className="h-4 w-4" />
+                      {startConversation.isPending ? "Opening…" : "Message"}
+                    </button>
+                  )}
+                </>
               ) : !isAuthenticated ? (
                 <Link
                   to="/login"

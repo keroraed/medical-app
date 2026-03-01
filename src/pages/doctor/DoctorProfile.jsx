@@ -12,7 +12,7 @@ import FormField from "@/components/forms/FormField";
 import AvailabilityEditor from "@/components/forms/AvailabilityEditor";
 import { Loader2, Camera, User } from "lucide-react";
 import { formatDate, getProfilePicUrl } from "@/lib/utils";
-import { BACKEND_URL } from "@/lib/constants";
+import { toast } from "sonner";
 
 export default function DoctorProfile() {
   const { data: profile, isLoading } = useDoctorProfile();
@@ -43,17 +43,17 @@ export default function DoctorProfile() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Client-side validation
     const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
     if (!allowedTypes.includes(file.type)) {
-      return alert("Only JPEG, PNG, and WebP images are allowed.");
+      toast.error("Only JPEG, PNG, and WebP images are allowed.");
+      return;
     }
     if (file.size > 2 * 1024 * 1024) {
-      return alert("File too large. Maximum size is 2 MB.");
+      toast.error("File too large. Maximum size is 2 MB.");
+      return;
     }
 
     uploadMutation.mutate(file);
-    // Reset input so same file can be re-selected
     e.target.value = "";
   };
 
@@ -151,8 +151,9 @@ export default function DoctorProfile() {
       <div className="border rounded-lg p-6 bg-card">
         <h3 className="font-semibold mb-4">Professional Details</h3>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <FormField label="Specialty">
+          <FormField label="Specialty" htmlFor="doc-specialty">
             <select
+              id="doc-specialty"
               {...register("specialty")}
               className="w-full border rounded-md px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring"
             >
@@ -165,8 +166,9 @@ export default function DoctorProfile() {
             </select>
           </FormField>
 
-          <FormField label="Bio">
+          <FormField label="Bio" htmlFor="doc-bio">
             <textarea
+              id="doc-bio"
               {...register("bio")}
               rows={3}
               placeholder="Describe your qualifications and experience..."

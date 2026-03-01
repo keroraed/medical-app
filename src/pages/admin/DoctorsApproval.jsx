@@ -1,33 +1,13 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { adminApi } from "@/api/admin.api";
-import { doctorApi } from "@/api/doctor.api";
+import { useAdminDoctors } from "@/hooks/queries/useDoctors";
+import { useApproveDoctor } from "@/hooks/mutations/useAdminMutations";
 import PageTitle from "@/components/shared/PageTitle";
 import LoadingSpinner from "@/components/shared/LoadingSpinner";
 import EmptyState from "@/components/shared/EmptyState";
-import { toast } from "sonner";
-import { getErrorMessage } from "@/lib/utils";
 import { ShieldCheck } from "lucide-react";
 
 export default function DoctorsApproval() {
-  const queryClient = useQueryClient();
-
-  // Get all doctors (admin sees unapproved too)
-  const { data, isLoading } = useQuery({
-    queryKey: ["admin", "doctors", "all"],
-    queryFn: async () => {
-      const { data } = await doctorApi.listDoctors({ page: 1, limit: 100 });
-      return data;
-    },
-  });
-
-  const approveMutation = useMutation({
-    mutationFn: (id) => adminApi.approveDoctor(id),
-    onSuccess: () => {
-      toast.success("Doctor approved successfully!");
-      queryClient.invalidateQueries({ queryKey: ["admin", "doctors"] });
-    },
-    onError: (error) => toast.error(getErrorMessage(error)),
-  });
+  const { data, isLoading } = useAdminDoctors();
+  const approveMutation = useApproveDoctor();
 
   if (isLoading) return <LoadingSpinner />;
 

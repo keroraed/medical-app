@@ -27,7 +27,9 @@ api.interceptors.response.use(
     const isAuthEndpoint = error.config?.url?.includes("/auth/");
     if (error.response?.status === 401 && !isAuthEndpoint) {
       useAuthStore.getState().logout();
-      window.location.href = "/login";
+      // Dispatch a custom event so a React component handles navigation
+      // without losing router context or causing a full page reload
+      window.dispatchEvent(new CustomEvent("auth:logout"));
     }
     return Promise.reject(error);
   },

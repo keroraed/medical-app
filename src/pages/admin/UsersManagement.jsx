@@ -1,38 +1,20 @@
 import { useSearchParams } from "react-router-dom";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { adminApi } from "@/api/admin.api";
+import { useAdminUsers } from "@/hooks/queries/useAdmin";
+import { useBlockUser } from "@/hooks/mutations/useAdminMutations";
 import PageTitle from "@/components/shared/PageTitle";
 import LoadingSpinner from "@/components/shared/LoadingSpinner";
 import EmptyState from "@/components/shared/EmptyState";
 import Pagination from "@/components/shared/Pagination";
-import { toast } from "sonner";
-import { getErrorMessage, formatDate } from "@/lib/utils";
+import { formatDate } from "@/lib/utils";
 import { Ban, CheckCircle } from "lucide-react";
 
 export default function UsersManagement() {
-  const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1");
   const role = searchParams.get("role") || "";
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["admin", "users", { page, limit: 10, role }],
-    queryFn: async () => {
-      const params = { page, limit: 10 };
-      if (role) params.role = role;
-      const { data } = await adminApi.getUsers(params);
-      return data;
-    },
-  });
-
-  const blockMutation = useMutation({
-    mutationFn: (id) => adminApi.blockUser(id),
-    onSuccess: () => {
-      toast.success("User status updated");
-      queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
-    },
-    onError: (error) => toast.error(getErrorMessage(error)),
-  });
+  const { data, isLoading } = useAdminUsers({ page, limit: 10, role });
+  const blockMutation = useBlockUser();
 
   const handlePageChange = (newPage) => {
     setSearchParams((prev) => {

@@ -7,6 +7,7 @@ export const doctorKeys = {
   detail: (id) => ["doctors", "detail", id],
   availability: (id) => ["doctors", "availability", id],
   profile: () => ["doctors", "profile"],
+  adminAll: () => ["doctors", "admin", "all"],
 };
 
 export function useDoctors(filters = {}) {
@@ -47,6 +48,16 @@ export function useDoctorProfile() {
     queryFn: async () => {
       const { data } = await doctorApi.getProfile();
       return data.data;
+    },
+  });
+}
+
+export function useAdminDoctors() {
+  return useQuery({
+    queryKey: doctorKeys.adminAll(),
+    queryFn: async () => {
+      const { data } = await doctorApi.listDoctors({ page: 1, limit: 100 });
+      return data;
     },
   });
 }

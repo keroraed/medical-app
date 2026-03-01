@@ -1,9 +1,8 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Link, useNavigate } from "react-router-dom";
-import { useMutation } from "@tanstack/react-query";
-import { authApi } from "@/api/auth.api";
+import { Link } from "react-router-dom";
+import { useRegister } from "@/hooks/mutations/useRegister";
 import { getErrorMessage } from "@/lib/utils";
 import { toast } from "sonner";
 import FormField from "@/components/forms/FormField";
@@ -28,7 +27,7 @@ const registerSchema = z.object({
 });
 
 export default function Register() {
-  const navigate = useNavigate();
+  const registerMutation = useRegister();
 
   const {
     register,
@@ -39,25 +38,15 @@ export default function Register() {
     defaultValues: { role: "patient" },
   });
 
-  const registerMutation = useMutation({
-    mutationFn: (data) => authApi.register(data),
-    onSuccess: (response, variables) => {
-      toast.success(response.data.message);
-      navigate("/verify-email", { state: { email: variables.email } });
-    },
-    onError: (error) => {
-      toast.error(getErrorMessage(error));
-    },
-  });
-
   const onSubmit = (data) => registerMutation.mutate(data);
 
   return (
     <div>
       <h2 className="text-2xl font-bold text-center mb-6">Create Account</h2>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <FormField label="Full Name" error={errors.name} required>
+        <FormField label="Full Name" htmlFor="reg-name" error={errors.name} required>
           <input
+            id="reg-name"
             type="text"
             {...register("name")}
             placeholder="Ahmed Hassan"
@@ -65,8 +54,9 @@ export default function Register() {
           />
         </FormField>
 
-        <FormField label="Email" error={errors.email} required>
+        <FormField label="Email" htmlFor="reg-email" error={errors.email} required>
           <input
+            id="reg-email"
             type="email"
             {...register("email")}
             placeholder="you@example.com"
@@ -74,8 +64,9 @@ export default function Register() {
           />
         </FormField>
 
-        <FormField label="Password" error={errors.password} required>
+        <FormField label="Password" htmlFor="reg-password" error={errors.password} required>
           <input
+            id="reg-password"
             type="password"
             {...register("password")}
             placeholder="••••••••"
@@ -83,8 +74,9 @@ export default function Register() {
           />
         </FormField>
 
-        <FormField label="Phone" error={errors.phone} required>
+        <FormField label="Phone" htmlFor="reg-phone" error={errors.phone} required>
           <input
+            id="reg-phone"
             type="tel"
             {...register("phone")}
             placeholder="01012345678"
@@ -93,8 +85,9 @@ export default function Register() {
         </FormField>
 
         <div className="grid grid-cols-2 gap-4">
-          <FormField label="Gender" error={errors.gender} required>
+          <FormField label="Gender" htmlFor="reg-gender" error={errors.gender} required>
             <select
+              id="reg-gender"
               {...register("gender")}
               className="w-full border rounded-md px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring"
             >
@@ -107,8 +100,9 @@ export default function Register() {
             </select>
           </FormField>
 
-          <FormField label="Date of Birth" error={errors.dateOfBirth} required>
+          <FormField label="Date of Birth" htmlFor="reg-dob" error={errors.dateOfBirth} required>
             <input
+              id="reg-dob"
               type="date"
               {...register("dateOfBirth")}
               className="w-full border rounded-md px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring"
@@ -116,8 +110,9 @@ export default function Register() {
           </FormField>
         </div>
 
-        <FormField label="Address" error={errors.address}>
+        <FormField label="Address" htmlFor="reg-address" error={errors.address}>
           <input
+            id="reg-address"
             type="text"
             {...register("address")}
             placeholder="123 Cairo Street"
@@ -125,8 +120,9 @@ export default function Register() {
           />
         </FormField>
 
-        <FormField label="Register as" error={errors.role} required>
+        <FormField label="Register as" htmlFor="reg-role" error={errors.role} required>
           <select
+            id="reg-role"
             {...register("role")}
             className="w-full border rounded-md px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring"
           >

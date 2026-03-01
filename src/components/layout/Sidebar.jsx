@@ -10,7 +10,9 @@ import {
   ShieldCheck,
   ClipboardList,
   Stethoscope,
+  MessageSquare,
 } from "lucide-react";
+import { useUnreadCount } from "@/hooks/queries/useChat";
 
 const navItems = {
   patient: [
@@ -18,11 +20,13 @@ const navItems = {
     { to: "/patient/profile", icon: User, label: "My Profile" },
     { to: "/patient/appointments", icon: Calendar, label: "My Appointments" },
     { to: "/patient/book", icon: CalendarPlus, label: "Book Appointment" },
+    { to: "/patient/chat", icon: MessageSquare, label: "Messages", badge: true },
   ],
   doctor: [
     { to: "/doctor", icon: LayoutDashboard, label: "Dashboard", end: true },
     { to: "/doctor/profile", icon: User, label: "My Profile" },
     { to: "/doctor/appointments", icon: Calendar, label: "Appointments" },
+    { to: "/doctor/chat", icon: MessageSquare, label: "Messages", badge: true },
   ],
   admin: [
     { to: "/admin", icon: LayoutDashboard, label: "Dashboard", end: true },
@@ -36,9 +40,11 @@ const navItems = {
 export default function Sidebar({ onItemClick }) {
   const { role } = useAuth();
   const items = navItems[role] || [];
+  const { data: unreadData } = useUnreadCount();
+  const totalUnread = unreadData?.data?.total ?? 0;
 
   return (
-    <nav className="p-3 space-y-1">
+    <nav className="p-3 space-y-1" aria-label="Dashboard navigation">
       {items.map((item) => (
         <NavLink
           key={item.to}
@@ -55,7 +61,12 @@ export default function Sidebar({ onItemClick }) {
           }
         >
           <item.icon className="h-4 w-4" />
-          {item.label}
+          <span className="flex-1">{item.label}</span>
+          {item.badge && totalUnread > 0 && (
+            <span className="h-4 min-w-[1rem] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] flex items-center justify-center">
+              {totalUnread > 99 ? "99+" : totalUnread}
+            </span>
+          )}
         </NavLink>
       ))}
     </nav>

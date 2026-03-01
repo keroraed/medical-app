@@ -13,6 +13,7 @@ import DashboardLayout from "@/components/layout/DashboardLayout";
 const Home = lazy(() => import("@/pages/public/Home"));
 const DoctorsList = lazy(() => import("@/pages/public/DoctorsList"));
 const DoctorDetail = lazy(() => import("@/pages/public/DoctorDetail"));
+const NotFound = lazy(() => import("@/pages/public/NotFound"));
 
 // Auth pages (lazy)
 const AuthPage = lazy(() => import("@/pages/auth/AuthPage"));
@@ -37,6 +38,9 @@ const DoctorProfile = lazy(() => import("@/pages/doctor/DoctorProfile"));
 const DoctorAppointments = lazy(
   () => import("@/pages/doctor/DoctorAppointments"),
 );
+
+// Chat page (lazy)
+const ChatPage = lazy(() => import("@/pages/chat/ChatPage"));
 
 // Admin pages (lazy)
 const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard"));
@@ -191,6 +195,14 @@ const router = createBrowserRouter([
               </SuspenseWrapper>
             ),
           },
+          {
+            path: "chat",
+            element: (
+              <SuspenseWrapper>
+                <ChatPage />
+              </SuspenseWrapper>
+            ),
+          },
         ],
       },
 
@@ -224,6 +236,14 @@ const router = createBrowserRouter([
             element: (
               <SuspenseWrapper>
                 <DoctorAppointments />
+              </SuspenseWrapper>
+            ),
+          },
+          {
+            path: "chat",
+            element: (
+              <SuspenseWrapper>
+                <ChatPage />
               </SuspenseWrapper>
             ),
           },
@@ -280,6 +300,16 @@ const router = createBrowserRouter([
             ),
           },
         ],
+      },
+
+      // 404 catch-all
+      {
+        path: "*",
+        element: (
+          <SuspenseWrapper>
+            <NotFound />
+          </SuspenseWrapper>
+        ),
       },
     ],
   },
